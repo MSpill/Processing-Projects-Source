@@ -41,7 +41,7 @@ void setup() {
   mc = null;
   head = 0;
   timeWaited = 0;
-  f = createFont ("AmericanTypewriter", 25);
+  f = createFont ("/static/projects/Game_35/data/AmericanTypewriter.ttf", 25);
   indicators = new ArrayList<Indicator>();
 }
 

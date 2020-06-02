@@ -15,10 +15,15 @@ float ys = 50;
 PGraphics pg;
 
 void setup() {
-  size ((int)(min(screenWidth, screenHeight)*0.8), (int)(min(screenWidth, screenHeight)*0.8*(590.0/650.0)));
+  float aR = 650.0/590.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.8 * aR, screenHeight * 0.8);
+  } else {
+    size (screenWidth * 0.8, screenWidth * 0.8 * 1.0/aR);
+  }
   pg = createGraphics(650, 590);
   turn = Side.red;
-  f = createFont ("AmericanTypewriter", 25);
+  f = createFont ("/static/projects/Game_35/data/AmericanTypewriter.ttf", 25);
   for (int y = 0; y < 8; y++) {
     for (int x = 0; x < 8; x++) {
       Cells[y][x] = new Cell (y, x);
