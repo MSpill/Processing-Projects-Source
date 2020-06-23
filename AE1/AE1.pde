@@ -20,7 +20,12 @@ PGraphics legend;
 PGraphics pg;
 
 void setup() {
-  size (screenWidth * 0.7, screenWidth * 0.7 * (3.0/5));
+  float aR = 5.0/3.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.7 * aR, screenHeight * 0.7);
+  } else {
+    size (screenWidth * 0.7, screenWidth * 0.7 * 1.0/aR);
+  }
   pg = createGraphics(1000, 600);
   legend = createGraphics(150, 150);
   drawLegend();

@@ -38,7 +38,12 @@ Stack bounds;
 boolean panelOpen;
 
 void setup() {
-  size ((int)(screenHeight*0.8*(1100.0/650.0)), (int)(screenHeight*0.8));
+  float aR = 1100.0/650.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size ((int)(screenHeight * 0.8 * aR), (int)(screenHeight * 0.8));
+  } else {
+    size ((int)(screenWidth * 0.8), (int)(screenWidth * 0.8 * 1.0/aR));
+  }
   setupGraphics();
   //stringShader = new PShader(this, "vert.glsl", "strings.glsl");
   setupRect();

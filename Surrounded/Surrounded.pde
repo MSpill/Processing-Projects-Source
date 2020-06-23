@@ -1,3 +1,4 @@
+/* @pjs globalKeyEvents="true"; */
 /* @pjs preload="/static/projects/Surrounded/data/Bullet.png"; */
 /* @pjs preload="/static/projects/Surrounded/data/CrawlFrame1.png"; */
 /* @pjs preload="/static/projects/Surrounded/data/CrawlFrame2.png"; */

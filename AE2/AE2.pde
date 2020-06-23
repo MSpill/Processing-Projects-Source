@@ -18,8 +18,12 @@ String netPath = "/static/projects/AE3/data/Cluster.neuralnet";
 PGraphics pg;
 
 void setup() {
-  
-  size (screenWidth * 0.7, screenWidth * 0.7 * 0.6);
+  float aR = 5.0/3.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.7 * aR, screenHeight * 0.7);
+  } else {
+    size (screenWidth * 0.7, screenWidth * 0.7 * 1.0/aR);
+  }
   pg = createGraphics(1000, 600);
   netLoaded = false;
   drawnGrid = false;

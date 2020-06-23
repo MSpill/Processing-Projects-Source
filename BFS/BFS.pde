@@ -17,7 +17,12 @@ final int NUM_NODES = 15;
 final int NUM_EDGES = 17;
 
 void setup() {
-  size ((int)(screenWidth*0.7), (int)(screenWidth*0.7*0.6));
+  float aR = 5.0/3.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.7 * aR, screenHeight * 0.7);
+  } else {
+    size (screenWidth * 0.7, screenWidth * 0.7 * 1.0/aR);
+  }
   pg = createGraphics(1000, 600);
   pg.beginDraw();
   pg.background(white);

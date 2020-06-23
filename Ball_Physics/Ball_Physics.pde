@@ -4,12 +4,18 @@ float elasticity;
 boolean menu;
 String simSetup;
 float buttonX, buttonY, buttonW, buttonH, buttonGap;
-
+float sF;
 void setup() {
-  size (1000, 600, P2D);
+  float aR = 1000.0/600.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size ((int)(screenHeight * 0.75 * aR), (int)(screenHeight * 0.75));
+  } else {
+    size ((int)(screenWidth * 0.75), (int)(screenWidth * 0.75 * 1.0/aR));
+  }
+  sF = width / 1000.0;
   Balls = new ArrayList<Ball>();
   menu = true;
-  buttonX = width/2 - 150;
+  buttonX = 1000.0/2 - 150;
   buttonY = 120;
   buttonW = 300;
   buttonGap = 90;
@@ -21,10 +27,10 @@ void draw() {
   if (menu) {
     background(230);
     textAlign(CENTER, CENTER);
-    textSize(40);
+    textSize(40 * sF);
     fill(0);
-    text("Pick a simulation setup", width/2, 60);
-    textSize(30);
+    text("Pick a simulation setup", 1000/2.0 * sF, 60 * sF);
+    textSize(30 * sF);
     drawButton(buttonX, buttonY, buttonW, buttonH, "Gas Mixing");
     drawButton(buttonX, buttonY+buttonGap, buttonW, buttonH, "Newton's Cradle");
     drawButton(buttonX, buttonY+buttonGap*2, buttonW, buttonH, "Gravity - Elastic");
@@ -37,9 +43,9 @@ void draw() {
     for (Ball b : Balls) {
       b.draw();
     }
-    textSize(16);
-    drawButton(width-120, 15, 100, 35, "Reset");
-    drawButton(width-120, 60, 100, 35, "Main menu");
+    textSize(16 * sF);
+    drawButton(1000-120, 15, 100, 35, "Reset");
+    drawButton(1000-120, 60, 100, 35, "Main menu");
   }
 }
 
@@ -49,7 +55,7 @@ void mousePressed() {
     String[] strings = {"Gas Mixing", "Newton's Cradle", "Gravity - Elastic", "Gravity - Inelastic"};
     boolean oneClicked = false;
     for (int i = 0; i < strings.length; i++) {
-      if (mouseX > buttonX && mouseX < buttonX+buttonW && mouseY > buttonY+buttonGap*i && mouseY < buttonY+buttonGap*i+buttonH) {
+      if (mouseX/sF > buttonX && mouseX/sF < buttonX+buttonW && mouseY/sF > buttonY+buttonGap*i && mouseY/sF < buttonY+buttonGap*i+buttonH) {
         setupBalls(strings[i]);
         oneClicked = true;
       }
@@ -59,11 +65,11 @@ void mousePressed() {
     }
   } else {
     color col = color (random(255), 255, 200);
-    Balls.add(new Ball (new PVector(mouseX, mouseY), new PVector(random(-2.5, 2.5), random(-2.5, 2.5)), random(600, 1200), col, 1));
-    if (mouseX > width-120 && mouseX < width-120+100 && mouseY > 15 && mouseY < 15+35) {
+    Balls.add(new Ball (new PVector(mouseX/sF, mouseY/sF), new PVector(random(-2.5, 2.5), random(-2.5, 2.5)), random(600, 1200), col, 1));
+    if (mouseX/sF > 1000-120 && mouseX/sF < 1000-120+100 && mouseY/sF > 15 && mouseY/sF < 15+35) {
       setupBalls(simSetup);
     }
-    if (mouseX > width-120 && mouseX < width-120+100 && mouseY > 60 && mouseY < 60+35) {
+    if (mouseX/sF > 1000-120 && mouseX/sF < 1000-120+100 && mouseY/sF > 60 && mouseY/sF < 60+35) {
       setup();
     }
   }
@@ -73,11 +79,11 @@ void drawButton(float x, float y, float w, float h, String myText) {
   colorMode(RGB);
   fill(170);
   stroke(100);
-  strokeWeight(3);
-  rect(x, y, w, h, 3);
+  strokeWeight(3 * sF);
+  rect(x * sF, y * sF, w * sF, h * sF, 3 * sF);
   fill(0);
   textAlign(CENTER, CENTER);
-  text(myText, x+w/2, y+h/2);
+  text(myText, (x+w/2)*sF, (y+h/2)*sF);
   colorMode(HSB);
 }
 
@@ -88,15 +94,15 @@ void setupBalls(String setupName) {
     gravity = 0;
     elasticity = 1;
     for (int i = 0; i < 500; i++) {
-      float x = random(width);
+      float x = random(1000);
       color col;
-      if (x < width/2) {
+      if (x < 1000/2) {
         col = color(255, 255, 255);
       } else {
         col = color(255*(240.0/360), 255, 255);
       }
       //col = color (random(255), random(255), random(255));
-      Balls.add(new Ball (new PVector(x, random(height)), new PVector(random(-1, 1), random(-1, 1)), 80, col, 1));
+      Balls.add(new Ball (new PVector(x, random(600)), new PVector(random(-1, 1), random(-1, 1)), 80, col, 1));
     }
   } else if (setupName.equals("Newton's Cradle")) {
     gravity = 0;
@@ -104,9 +110,9 @@ void setupBalls(String setupName) {
     for (int i = 0; i < 15; i++) {
       float x = 200+i*40;
       color col = color(random(255), 255, 200);
-      Balls.add(new Ball (new PVector(x, height/2), new PVector(0, 0), 950, col, 1));
+      Balls.add(new Ball (new PVector(x, 600/2), new PVector(0, 0), 950, col, 1));
     }
-    Balls.add(new Ball(new PVector(20, height/2), new PVector(3, 0), 950, color(255,255,255), 1));
+    Balls.add(new Ball(new PVector(20, 600/2), new PVector(3, 0), 950, color(255,255,255), 1));
   } else if (setupName.equals("Gravity - Elastic")) {
     elasticity = 1;
     gravity = 0.3;
@@ -134,10 +140,10 @@ class Ball {
   void draw() {
     noStroke();
     fill (col);
-    ellipse (position.x, position.y, radius*2, radius*2);
+    ellipse (position.x*sF, position.y*sF, radius*2*sF, radius*2*sF);
     fill (255);
     textAlign(CENTER, CENTER);
-    textSize (radius);
+    textSize (radius*sF);
     //text (index, position.x, position.y);
   }
   void update() {
@@ -162,20 +168,20 @@ class Ball {
         }
       }
       position.add(PVector.div(velocity, 1));
-      if (position.x < radius || position.x > width-radius) {
+      if (position.x < radius || position.x > 1000-radius) {
         velocity.x *= -elasticity;
         if (position.x < radius) {
           position.x = radius;
         } else {
-          position.x = width-radius;
+          position.x = 1000-radius;
         }
       }
-      if (position.y < radius || position.y > height-radius) {
+      if (position.y < radius || position.y > 600-radius) {
         velocity.y *= -elasticity;
         if (position.y < radius) {
           position.y = radius;
         } else {
-          position.y = height-radius;
+          position.y = 600-radius;
         }
       }
       velocity.add (0, gravity);

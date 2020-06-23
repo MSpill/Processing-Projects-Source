@@ -58,7 +58,12 @@ int cZ = 5;
 Node[][][] Nodes;
 
 void setup() {
-  size ((int) max(screenWidth * 0.8, 980), (int) max(screenWidth * 0.8 * 0.6, 980 * 0.6), P2D);
+  float aR = 5.0/3.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (max(screenHeight * 0.8 * aR,980), max(screenHeight * 0.8, 980*0.6));
+  } else {
+    size (max(screenWidth * 0.8, 980), max(screenWidth * 0.8 * 1.0/aR, 980*0.6));
+  }
   if (width < 1000) {
     widthX = (int)(15 * (width/1000.0));
     widthY = (int)(15 * (width/1000.0));

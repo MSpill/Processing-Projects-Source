@@ -10,8 +10,14 @@ float scaleFactor = 1.5;
 
 void setup()
 {
-  size (screenWidth * 0.8, screenWidth * 0.8 * 0.6, P2D);
-  pg = createGraphics(screenWidth * 0.8, screenWidth * 0.8 * 0.6, P2D);
+  float aR = 5.0/3.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.8 * aR, screenHeight * 0.8);
+    pg = createGraphics(screenHeight * 0.8 * aR, screenHeight * 0.8);
+  } else {
+    size (screenWidth * 0.8, screenWidth * 0.8 * 1.0/aR);
+    pg = createGraphics(screenWidth * 0.8, screenWidth * 0.8 * 1.0/aR);
+  }
   pg2 = createGraphics(pg.width, pg.height, P2D);
   scaleFactor = pg.width / 1000.0;
   pg.colorMode(HSB);

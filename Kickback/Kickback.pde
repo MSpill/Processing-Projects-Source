@@ -29,8 +29,13 @@ float sF;
 
 void setup()
 {
-  size((int)(screenWidth*0.75), (int)(screenWidth*0.75*(800.0/1280)), P2D);
-  sF = ((int)(screenWidth*0.75)) / 1280.0;
+  float aR = 1280.0/800.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.75 * aR, screenHeight * 0.75);
+  } else {
+    size (screenWidth * 0.75, screenWidth * 0.75 * 1.0/aR);
+  }
+  sF = width / 1280.0;
 }
 void draw()
 {

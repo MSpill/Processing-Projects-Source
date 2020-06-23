@@ -6,7 +6,13 @@ PriorityQueue queue;
 PGraphics pg;
 
 void setup() {
-  size ((int)(min(screenWidth,1440)*0.7), (int)(min(screenWidth,1440)*0.7*2.0/3.0));
+
+  float aR = 1200.0/800.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.7 * aR, screenHeight * 0.7);
+  } else {
+    size (screenWidth * 0.7, screenWidth * 0.7 * 1.0/aR);
+  }
   pg=createGraphics(1200, 800);
   buildTree();
   

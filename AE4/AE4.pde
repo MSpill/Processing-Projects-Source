@@ -27,8 +27,12 @@ boolean redraw = false;
 PGraphics pg;
 
 void setup() {
-  
-  size (screenHeight*0.8*(710.0/670.0), screenHeight*0.8, P2D);
+  float aR = 710.0/670.0;
+  if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
+    size (screenHeight * 0.7 * aR, screenHeight * 0.7);
+  } else {
+    size (screenWidth * 0.7, screenWidth * 0.7 * 1.0/aR);
+  }
   pg = createGraphics (710, 670, P2D);
   net1 = LOAD_NETWORK (netPath1);
   net2 = LOAD_NETWORK (netPath2);

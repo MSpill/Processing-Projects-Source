@@ -272,10 +272,14 @@ class Board35 extends Board {
     for (int[] pos : neighbors) {
       int row = pos[0];
       int col = pos[1];
-      if (sums[row][col] == 35) {
+      if (sums[row][col] == 35 && cells[row][col] != 0) {
         Indicator i = new Indicator(col, row);
         indicators.add(i);
       }
+    }
+    if (sums[rP.row][rP.col] == 35) {
+      Indicator i = new Indicator(rP.col, rP.row);
+      indicators.add(i);
     }
   }
   
