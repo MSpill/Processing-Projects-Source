@@ -42,7 +42,7 @@ void setup() {
   rightImage2 = new float[784];
   //println(sigmoid(0));
   pg.beginDraw();
-  pg.background(255);
+  pg.background(250);
   pg.endDraw();
   button1X = 60;
   button2X = 50+gridSize*14+10;
@@ -53,7 +53,7 @@ void setup() {
 
 void draw() {
   pg.beginDraw();
-  pg.fill(255);
+  pg.fill(250);
   pg.noStroke();
   pg.rect(pg.width/2-400, -10, 800, 75);
   pg.rect(pg.width/2-400, -10+vertGap, 800, 75);
@@ -204,19 +204,19 @@ void drawSpaces(Input[][] network, float[] leftImage, float[] rightImage, float 
     pg.rect(posX+400, posY, 28*gridSize, 28*gridSize);
     
     // Draw arrows and compressed form
-    pg.fill(255);
+    pg.fill(250);
     pg.noStroke();
     pg.rect (posX + gridSize*28 + 1, posY, 398 - gridSize * 28, gridSize * 28);
     pg.fill(150);
     pg.triangle (posX + gridSize*28 + 10, posY + (1.0/5)*gridSize*28, posX + gridSize*28 + 10, posY + (4.0/5)*gridSize*28, posX + gridSize*28+60, posY + gridSize*14);
     pg.triangle (posX + 390, posY + (1.0/5)*gridSize*28, posX + 390, posY + (4.0/5)*gridSize*28, posX + 340, posY + gridSize*14);
-    pg.fill(255);
+    pg.fill(250);
     //rect(posX + gridSize*28 + 10, posY + (3.5/5)*gridSize*28 + 15, 70, 40);
     pg.textSize(16);
     pg.textAlign(LEFT, TOP);
     pg.fill(100);
     pg.text ("Encode", posX + gridSize*28 + 10, posY + (4.0/5)*gridSize*28 + 15);
-    pg.fill(255);
+    pg.fill(250);
     //rect(posX + gridSize*28 + 100, posY + (3.5/5)*gridSize*28 + 15, 80, 40);
     pg.textSize(16);
     pg.textAlign(RIGHT, TOP);

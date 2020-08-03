@@ -46,7 +46,7 @@ void setup() {
 }
 
 void draw() {
-  pg.background(255);
+  pg.background(250);
   float startMillis = millis();
   drawText();
   drawButtons();

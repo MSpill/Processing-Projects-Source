@@ -15,8 +15,15 @@ Checkbox islandCheckbox;
 
 int step;
 int drawX, drawY;
+
+boolean isMobile;
+int touchCooldown1, touchCooldown2;
+
 void setup() {
-  size ((int)(330 + max(screenHeight * 0.75,560) * (34.0/30.0)), (int)(max(screenHeight * 0.75,560)));
+  isMobile = false;
+  touchCooldown1 = 0;
+  touchCooldown2 = 0;
+  size ((int)(330 + max(min(screenHeight * 0.75, screenWidth - 330),560) * (34.0/30.0)), (int)(max(min(screenHeight * 0.75, screenWidth - 330),560)));
   //mp = createGraphics(width-panelW,height);
   elements = new ArrayList<UIElement>();
   createPanel();
@@ -26,6 +33,8 @@ void setup() {
 }
 
 void draw() {
+  touchCooldown1--;
+  touchCooldown2--;
   if (png == null) {
     png = new PerlinNoiseGenerator(int(random(999999)));
   }
@@ -83,15 +92,55 @@ void handleUI() {
   }
 }
 
+void touchStart(TouchEvent e) {
+  if (touchCooldown1 <= 0) {
+    //document.getElementById("sketch").removeEventListener('touchmove', touchMove);
+    mouseX = e.touches[0].offsetX;
+    mouseY = e.touches[0].offsetY;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    isMobile = false;
+    mousePressed();
+    isMobile = true;
+    touchCooldown1 = 5;
+    mousePressed = true;
+  }
+}
+
+void touchEnd(TouchEvent e) {
+  if (touchCooldown2 <= 0) {
+    isMobile = false;
+    mouseReleased();
+    isMobile = true;
+    touchCooldown2 = 5;
+    mouseX = 0;
+    mouseY = 0;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    mousePressed = false;
+  }
+}
+
+void touchMove(TouchEvent e) {
+  mouseX = e.touches[0].offsetX;
+  mouseY = e.touches[0].offsetY;
+  pmouseX = mouseX;
+  pmouseY = mouseY;
+}
+
 void mousePressed() {
-  for (UIElement e : elements) {
-    e.mousePressed();
+  if (!isMobile) {
+    for (UIElement e : elements) {
+      e.mousePressed();
+    }
   }
 }
 
 void mouseReleased() {
-  for (UIElement e : elements) {
-    e.mouseReleased();
+  if (!isMobile) {
+    for (UIElement e : elements) {
+      e.mouseReleased();
+    }
   }
 }
 

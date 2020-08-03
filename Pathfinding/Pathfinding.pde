@@ -34,8 +34,14 @@ int endRow, endCol;
 
 int dragging;
 
+boolean isMobile;
+int touchCooldown1, touchCooldown2;
+
 void setup() {
-  size ((int)(330 + max(screenHeight * 0.8,600) * (34.0/30.0)), (int)(max(screenHeight * 0.8,600)));
+  size ((int)(330 + max(min(screenHeight * 0.8, screenWidth * 0.9 - 330),600) * (34.0/30.0)), (int)(max(min(screenHeight * 0.8, screenWidth * 0.9 - 330),600)));
+  isMobile = false;
+  touchCooldown1 = 0;
+  touchCooldown2 = 0;
   map = createGraphics(1010-330, 600);
   grassCol = color(#99D89E);
   forestCol = color(#638E25);
@@ -57,6 +63,8 @@ void setup() {
 }
 
 void draw() {
+  touchCooldown1--;
+  touchCooldown2--;
   background(255);
   image (map, 330, 0, width-330, height);
   buttonFunctions();
@@ -69,24 +77,55 @@ void draw() {
   timeSinceMoved++;
 }
 
+void touchStart(TouchEvent e) {
+  if (touchCooldown1 <= 0) {
+    //document.getElementById("sketch").removeEventListener('touchmove', touchMove);
+    mouseX = e.touches[0].offsetX;
+    mouseY = e.touches[0].offsetY;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    isMobile = false;
+    mousePressed();
+    isMobile = true;
+    touchCooldown1 = 5;
+  }
+}
+
+void touchEnd(TouchEvent e) {
+  if (touchCooldown2 <= 0) {
+    isMobile = false;
+    mouseReleased();
+    isMobile = true;
+    touchCooldown2 = 5;
+    mouseX = 0;
+    mouseY = 0;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+  }
+}
+
 void mousePressed() {
-  for (UIElement e : elements) {
-    e.mousePressed();
+  if (!isMobile) {
+    for (UIElement e : elements) {
+      e.mousePressed();
+    }
+    if (advancedOpen && !mouseIn(advancedX, advancedY, advancedW, advancedH, 1) && !advancedButton.beingPressed && speedDrop.inFocus == 0 && sizeDrop.inFocus == 0) {
+      advancedOpen = false;
+      OKButton.active = false;
+      updateSizeAndSpeed();
+    }
+    checkDragging();
   }
-  if (advancedOpen && !mouseIn(advancedX, advancedY, advancedW, advancedH, 1) && !advancedButton.beingPressed && speedDrop.inFocus == 0 && sizeDrop.inFocus == 0) {
-    advancedOpen = false;
-    OKButton.active = false;
-    updateSizeAndSpeed();
-  }
-  checkDragging();
 }
 
 void mouseReleased() {
-  for (UIElement e : elements) {
-    e.mouseReleased();
+  if (!isMobile) {
+    for (UIElement e : elements) {
+      e.mouseReleased();
+    }
+    dragging = 0;
+    placeTiles = true;
   }
-  dragging = 0;
-  placeTiles = true;
 }
 
 void mouseMoved() {

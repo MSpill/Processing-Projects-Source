@@ -37,7 +37,13 @@ Stack bounds;
 
 boolean panelOpen;
 
+boolean isMobile;
+int touchCooldown1, touchCooldown2;
+
 void setup() {
+  isMobile = false;
+  touchCooldown1 = 0;
+  touchCooldown2 = 0;
   float aR = 1100.0/650.0;
   if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
     size ((int)(screenHeight * 0.8 * aR), (int)(screenHeight * 0.8));
@@ -53,6 +59,8 @@ void setup() {
 }
 
 void draw() {
+  touchCooldown1--;
+  touchCooldown2--;
   background(0);
   drawBrot();
   handleZooming();
@@ -60,40 +68,80 @@ void draw() {
   drawPanel();
 }
 
-void mousePressed() {
-  if (!(panelOpen && mouseIn(0, 0, panelWidth, panelH, 1)) && !elementsInFocus() && !collapseButton.hoveredOver()) {
-    nXMin = map(mouseX, 0, width, xMin, xMax);
-    nYMax = map(mouseY, 0, height, yMax, yMin);
-    draggingRect = true;
+void touchStart(TouchEvent e) {
+  if (touchCooldown1 <= 0) {
+    //document.getElementById("sketch").removeEventListener('touchmove', touchMove);
+    mouseX = e.touches[0].offsetX;
+    mouseY = e.touches[0].offsetY;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    isMobile = false;
+    mousePressed();
+    isMobile = true;
+    touchCooldown1 = 5;
+    mousePressed = true;
   }
-  for (UIElement e : elements) {
-    e.mousePressed();
+}
+
+void touchEnd(TouchEvent e) {
+  if (touchCooldown2 <= 0) {
+    isMobile = false;
+    mouseReleased();
+    isMobile = true;
+    touchCooldown2 = 5;
+    mouseX = 0;
+    mouseY = 0;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    mousePressed = false;
+  }
+}
+
+void touchMove(TouchEvent e) {
+  mouseX = e.touches[0].offsetX;
+  mouseY = e.touches[0].offsetY;
+  pmouseX = mouseX;
+  pmouseY = mouseY;
+}
+
+void mousePressed() {
+  if (!isMobile) {
+    if (!(panelOpen && mouseIn(0, 0, panelWidth, panelH, 1)) && !elementsInFocus() && !collapseButton.hoveredOver()) {
+      nXMin = map(mouseX, 0, width, xMin, xMax);
+      nYMax = map(mouseY, 0, height, yMax, yMin);
+      draggingRect = true;
+    }
+    for (UIElement e : elements) {
+      e.mousePressed();
+    }
   }
 }
 
 void mouseReleased() {
-  if (draggingRect) {
-    nXMax = map(mouseX, 0, width, xMin, xMax);
-    nYMin = nYMax - ((nXMax - nXMin) * ((mpg.height+0.0)/mpg.width));
-    bounds.push(new double[]{xMin, xMax, yMin, yMax});
-    if (nXMax != nXMin && nYMax != nYMin) {
-      xMin = nXMin; xMax = nXMax;
-      yMin = nYMin; yMax = nYMax;
-      clearBrot();
-      updateBrot();
-    } else {
-      double newWidth = (xMax-xMin) * 0.25;
-      double newHeight = (yMax-yMin) * 0.25;
-      xMin = nXMin - newWidth/2.0;
-      xMax = nXMin + newWidth/2.0;
-      yMin = nYMin - newHeight/2.0;
-      yMax = nYMin + newHeight/2.0;
-      clearBrot();
+  if (!isMobile) {
+    if (draggingRect) {
+      nXMax = map(mouseX, 0, width, xMin, xMax);
+      nYMin = nYMax - ((nXMax - nXMin) * ((mpg.height+0.0)/mpg.width));
+      bounds.push(new double[]{xMin, xMax, yMin, yMax});
+      if (nXMax != nXMin && nYMax != nYMin) {
+        xMin = nXMin; xMax = nXMax;
+        yMin = nYMin; yMax = nYMax;
+        clearBrot();
+        updateBrot();
+      } else {
+        double newWidth = (xMax-xMin) * 0.25;
+        double newHeight = (yMax-yMin) * 0.25;
+        xMin = nXMin - newWidth/2.0;
+        xMax = nXMin + newWidth/2.0;
+        yMin = nYMin - newHeight/2.0;
+        yMax = nYMin + newHeight/2.0;
+        clearBrot();
+      }
+      draggingRect = false;
     }
-    draggingRect = false;
-  }
-  for (UIElement e : elements) {
-    e.mouseReleased();
+    for (UIElement e : elements) {
+      e.mouseReleased();
+    }
   }
 }
 

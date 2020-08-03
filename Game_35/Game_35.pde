@@ -33,7 +33,7 @@ void setup() {
 
 void draw() {
   pg.beginDraw();
-  pg.background (255);
+  pg.background (250);
   for (int y = 0; y < Cells.length; y++) {
     for (int x = 0; x < Cells[y].length; x++) {
       Cells[y][x].draw();

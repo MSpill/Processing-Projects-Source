@@ -20,7 +20,7 @@ void setup() {
 
 void draw() {
   float startMillis = millis();
-  pg.background(255);
+  pg.background(250);
   pg.fill(0);
   pg.textSize(30);
   pg.textAlign(CENTER, CENTER);

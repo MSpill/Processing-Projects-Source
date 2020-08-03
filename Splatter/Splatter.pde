@@ -24,8 +24,8 @@ void setup()
   pg2.colorMode(HSB);
   frameCount = 0;
   gravObs = new ArrayList<Grav>();
-  pg.background (255);
-  pg2.background (255);
+  pg.background (250);
+  pg2.background (250);
   numBodies = (int)random(20,20);
   float maxMass = random(300,400)/(numBodies/20.0);
   for (int i = 0; i < numBodies; i++) {

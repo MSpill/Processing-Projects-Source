@@ -27,8 +27,14 @@ PFont s;
 
 float sF;
 
+boolean isMobile;
+int touchCooldown1, touchCooldown2;
+
 void setup()
 {
+  isMobile = false;
+  touchCooldown1 = 0;
+  touchCooldown2 = 0;
   float aR = 1280.0/800.0;
   if (screenWidth / (screenHeight+0.0) > aR) { // height is limiting
     size (screenHeight * 0.75 * aR, screenHeight * 0.75);
@@ -39,6 +45,8 @@ void setup()
 }
 void draw()
 {
+  touchCooldown1--;
+  touchCooldown2--;
   background (200);
   for (Bullet b : Bullets)
   {
@@ -273,34 +281,60 @@ void draw()
     }
   }
 }
+
+void touchStart(TouchEvent e) {
+  if (touchCooldown1 <= 0) {
+    //document.getElementById("sketch").removeEventListener('touchmove', touchMove);
+    mouseX = e.touches[0].offsetX;
+    mouseY = e.touches[0].offsetY;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    isMobile = false;
+    mousePressed();
+    isMobile = true;
+    touchCooldown1 = 3;
+    mousePressed = true;
+  }
+}
+
+void touchEnd(TouchEvent e) {
+  if (touchCooldown2 <= 0) {
+    isMobile = true;
+    touchCooldown2 = 3;
+    mousePressed = false;
+  }
+}
+
 void mousePressed()
 {
-  if (play.alive == true)
-  {
-    if (menu == false)
+  if (!isMobile) {
+    if (play.alive == true)
     {
-      play.xv -= revAngleX (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), gravity*10);
-      play.yv -= revAngleY (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), gravity*10);
-      valCount = 6;
-      score += 1;
-      Bullets.add(new Bullet (play.x, play.y, revAngleX (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), 15), revAngleY (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), 15)));
-      int drop = round (random (1.5, 4.49));
-      /*if (drop == 1)
-       {
-       Drop1.play();
-       }
-       if (drop == 2)
-       {
-       Drop1.play();
-       }
-       if (drop == 3)
-       {
-       Drop2.play();
-       }
-       if (drop == 4)
-       {
-       Drop3.play();
-       }*/
+      if (menu == false)
+      {
+        play.xv -= revAngleX (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), gravity*10);
+        play.yv -= revAngleY (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), gravity*10);
+        valCount = 6;
+        score += 1;
+        Bullets.add(new Bullet (play.x, play.y, revAngleX (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), 15), revAngleY (Angle (play.x, play.y, map(mouseX, 0, width, 0, 1280), map(mouseY, 0, height, 0, 800)), 15)));
+        int drop = round (random (1.5, 4.49));
+        /*if (drop == 1)
+        {
+        Drop1.play();
+        }
+        if (drop == 2)
+        {
+        Drop1.play();
+        }
+        if (drop == 3)
+        {
+        Drop2.play();
+        }
+        if (drop == 4)
+        {
+        Drop3.play();
+        }*/
+      }
     }
   }
 }

@@ -1,3 +1,8 @@
+/* @pjs preload="/static/projects/ScaleCharts/audio.png" */
+
+/* Note: this project relies more heavily than the others on native js. To run this in the processing IDE, you'll need to commment
+	 out all the javascript (mostly related to the audio). */
+
 String[] tuning = {"E", "A", "D", "G", "B", "E"};
 String root = "G";
 String scale = "Pentatonic";
@@ -33,23 +38,56 @@ String[] pentatonicModes = {"Major (I)",  "Minor (VI)", "Dorian (II)", "Phrygian
 String[] harmonicMinorModes = {"I (Harmonic minor)", "II (Locrian 6)", "III (Ionian augmented)", "IV (Dorian #11)", "V (Phrygian dominant)", "VI (Lydian #2)", "VII (Super locrian bb7)"};
 String[] melodicMinorModes = {"I (Melodic minor)", "II (Dorian b2)", "III (Lydian augmented)", "IV (Lydian dominant)", "V (Mixolydian b6)", "VI (Aeolian b5)", "VII (Super locrian)"};
 String[] harmonicMajorModes = {"I (Harmonic major)", "II (Dorian b5)", "III (Phrygian b4)", "IV (Lydian b3)", "V (Mixolydian b2)", "VI (Lydian augmented #2)", "VII (Locrian bb7)"};
-String[] diminishedModes = {"I (Whole start)", "II (Half start)"};
+String[] diminishedModes = {"I (Whole-half)", "II (Half-whole)"};
 String[] doubleHarmonicModes = {"I (Double harmonic major)", "IV (Hungarian/Gypsy minor)", "II (Lydian #2 #6)", "III (Ultraphrygian)", "V (Oriental)", "VI (Ionian #2 #5)", "VII (Locrian bb3 bb7)"};
 String[] neapolitanMinorModes = {"I (Neapolitan minor)", "IV (Hungarian Gypsy scale)", "II (Lydian #6)", "III (Mixolydian augmented)", "V (Locrian dominant)", "VI (Ionian #2)", "VII (Ultralocrian bb3)"};
 
+var sounds = [];
+int pitchIndex = 0;
+int scaleTimer;
+boolean playScale;
+PImage audioButton;
+
+boolean isMobile, havePlayedAudio;
+int touchCooldown1, touchCooldown2;
+
 void setup() {
-  size (max(screenWidth, 700), max((int)(screenHeight - 150), 500), P2D);
+  isMobile = false;
+  havePlayedAudio = false;
+  touchCooldown1 = 0;
+  touchCooldown2 = 0;
+  float wid = screenWidth;
+  float hei = screenHeight - 30;
+  if (hei > wid) {
+    size (max(hei, 700), max((int)(wid), 500), P2D);
+  } else {
+    size (max(wid, 700), max((int)(hei - 150), 500), P2D);
+  }
   smooth(3);
   boardW = (width - 130) * 0.9; boardX = (width-boardW)/2.0;
   if (boardX + boardW + 130 > width) {
     boardX -= boardX + boardW + 130 - width;
   }
   boardH = height * 0.42; boardY = 125 + boardH / (tuning.length-1.0) * 1.35;
+  audioButton = loadImage("/static/projects/ScaleCharts/data/audio.png"); // replace with just "audio.png"
   setupUI();
   recalculateScale();
+  for (var i = 0; i < 24; i++) {
+    var mySound = document.createElement("audio");
+    mySound.src = "/static/projects/ScaleCharts/sounds/" + i + ".mp3";
+    mySound.setAttribute("preload", "auto");
+    mySound.setAttribute("controls", "none");
+    mySound.style.display = "none";
+    mySound.volume = 0.4;
+    mySound.playbackRate = 1.5;
+    document.body.appendChild(mySound);
+    sounds.push(mySound);
+  }
 }
 
 void draw() {
+  touchCooldown1--;
+  touchCooldown2--;
   background(250);
   uiFunctions();
   drawNeck();
@@ -60,12 +98,42 @@ void draw() {
   if (editTuning) {
     drawEditTuningMenu();
   }
+  scalePlay();
+}
+
+void scalePlay() {
+  if (playScale) {
+    if (scaleTimer % 45 == 0) {
+      if (pitchIndex < currScale.length) {
+        pitchIndex++;
+        while (mask[pitchIndex % currScale.length] == false) {
+          pitchIndex++;
+        }
+        int soundIndex = toneOf(root) + currScale[pitchIndex % currScale.length];
+        if (pitchIndex >= currScale.length) {
+          soundIndex += 12;
+        }
+        if (soundIndex < sounds.length) {
+          if (sounds[soundIndex].paused || sounds[soundIndex].currentTime > 0) {
+            sounds[soundIndex].currentTime = 0;
+          }
+          sounds[soundIndex].play();
+        } else {
+          playScale = false;
+        }
+      } else {
+        playScale = false;
+      }
+    }
+    scaleTimer++;
+  }
 }
 
 void drawNeck() {
   float fretW = boardW / frets;
   float stringH = boardH / (tuning.length - 1);
-  
+  float circleSize = min(min(stringH * 0.8, fretW * 0.8), 60);
+
   textAlign(CENTER, CENTER);
   textSize(50);
   fill(0);
@@ -100,19 +168,18 @@ void drawNeck() {
       noStroke();
       fill (200);
       ellipse (boardX + (i-0.5) * fretW, boardY + boardH / 2.0, stringH * 0.5, stringH * 0.5);
-      ellipse (boardX + (i-0.5) * fretW, boardY - stringH * 0.75, fretW * 0.2, fretW * 0.2);
+      ellipse (boardX + (i-0.5) * fretW, boardY - circleSize / 2.0 - fretW * 0.2, fretW * 0.2, fretW * 0.2);
     }
     if (i % 12 == 0 && i > 0) {
       noStroke();
       fill (200);
       ellipse (boardX + (i-0.5) * fretW, boardY + boardH / 3.0, stringH * 0.5, stringH * 0.5);
       ellipse (boardX + (i-0.5) * fretW, boardY + boardH / 3.0 * 2, stringH * 0.5, stringH * 0.5);
-      ellipse (boardX + (i-0.67) * fretW, boardY - stringH * 0.75, fretW * 0.2, fretW * 0.2);
-      ellipse (boardX + (i-0.33) * fretW, boardY - stringH * 0.75, fretW * 0.2, fretW * 0.2);
+      ellipse (boardX + (i-0.67) * fretW, boardY - circleSize / 2.0 - fretW * 0.2, fretW * 0.2, fretW * 0.2);
+      ellipse (boardX + (i-0.33) * fretW, boardY - circleSize / 2.0 - fretW * 0.2, fretW * 0.2, fretW * 0.2);
     }
   }
   
-  float circleSize = min(stringH * 0.8, fretW * 0.8);
   String[] accidentals = null;
   String s = scale.toLowerCase();
   boolean useAccidentals = true;
@@ -124,9 +191,9 @@ void drawNeck() {
     //rootDrop.value = bestRoot(root, accidentals);
   }
 
-  drawNotesInOrder(width/2.0, clamp(boardY + boardH + 105, boardY + boardH + 70, height-30), clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0), clamp(circleSize * 1.15, 35, 50) * 1.15, accidentals, noteNames, mask);
+  drawNotesInOrder(width/2.0 - 50, clamp(boardY + boardH + 105, boardY + boardH + 70, height-30), clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0), clamp(circleSize * 1.15, 35, 50) * 1.15, accidentals, noteNames, mask);
   float notesW = clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0) * (accidentals.length - 1);
-  float textX = width/2.0 + notesW/2.0 + clamp(circleSize * 1.15, 35, 50) * 1.15 * 0.5 + 25;
+  float textX = width/2.0 - 50 + notesW/2.0 + clamp(circleSize * 1.15, 35, 50) * 1.15 * 0.5 + 25;
   float textY = clamp(boardY + boardH + 105, boardY + boardH + 70, height-30);
   if (mouseIn(textX - 15, textY - 25, 85, 50, 1)) {
     strokeWeight(2);
@@ -137,7 +204,15 @@ void drawNeck() {
   textAlign(CENTER, CENTER);
   fill(150);
   textSize(30);
-  text(useNotesText, width/2.0 + notesW/2.0 + clamp(circleSize * 1.15, 35, 50) * 1.15 * 0.5 + 25 + 28, clamp(boardY + boardH + 105, boardY + boardH + 70, height-30));
+  text(useNotesText, width/2.0 + notesW/2.0 + clamp(circleSize * 1.15, 35, 50) * 1.15 * 0.5 + 3, clamp(boardY + boardH + 105, boardY + boardH + 70, height-30));
+
+  if (mouseIn(textX + 70, textY - 30, 70, 60, 1)) {
+    strokeWeight(2);
+    stroke(150);
+    fill(250);
+    rect(textX + 70, textY - 30, 70, 60, 1);
+  }
+  image(audioButton, textX + 80, textY - 25, 50, 50);
 
   for (int i = 0; i < tuning.length; i++) {
     stroke(100);
@@ -159,6 +234,12 @@ void drawNeck() {
     for (int f = 0; f < frets + 1; f++) {
       int degree = noteInScale(pitchOfString + f, toneOf(root), currScale);
       if (degree >= 0 && mask[degree] == 1) {
+        if (playScale && pitchIndex % currScale.length == degree) {
+          strokeWeight(3);
+          stroke(150);
+          fill(255);
+          ellipse(boardX + (f-0.5) * fretW, boardY + boardH - i * stringH, circleSize * 1.25, circleSize * 1.25);
+        }
         fill(0);
         if (degree == 0) {
           fill (0, 0, 255);
@@ -240,7 +321,7 @@ void drawEditTuningMenu() {
   fill(50);
   textSize(28);
   textAlign(RIGHT, CENTER);
-  text("Tuning:", width/2.0 - 100 - 23, height/2.0-174);
+  text("Tuning:", width/2.0 - 100 - 23, height/2.0-194);
   float wholeW = 600;
   float gap = wholeW / (tuning.length-1);
   for (int i = 0; i < tuning.length; i++) {
@@ -289,6 +370,12 @@ void drawNotesInOrder(float posX, float y, float gap, float circleSize, String[]
     float a = (noteMask[i] == 1) ? 255 : 25;
     float wholeW = gap * (accidentals.length-1);
     float x = posX - wholeW/2.0 + i*gap;
+    if (playScale && pitchIndex % currScale.length == i) {
+      strokeWeight(3);
+      stroke(150);
+      fill(255);
+      ellipse(x, y, circleSize * 1.25, circleSize * 1.25);
+    }
     fill (0, 0, 0, a);
     if (i == 0) {
       float b = 0;
@@ -313,10 +400,9 @@ void drawNotesInOrder(float posX, float y, float gap, float circleSize, String[]
         fill (cols[realDegree-1], sat * valMult, val * valMult * 0.7, a * 2);
       }
     }
-    stroke(100);
+    colorMode(RGB);
     noStroke();
     ellipse(x, y, circleSize, circleSize);
-    colorMode(RGB);
     fill(250);
     if (noteMask[i] == 0) fill (170);
     textAlign(CENTER, CENTER);
@@ -330,105 +416,162 @@ void drawNotesInOrder(float posX, float y, float gap, float circleSize, String[]
   }
 }
 
-void mousePressed() {
-  for (UIElement e : elements) {
-    e.mousePressed();
+void touchStart(TouchEvent e) {
+  if (touchCooldown1 <= 0) {
+    document.getElementById("sketch").removeEventListener('touchmove', touchMove);
+    mouseX = e.touches[0].offsetX;
+    mouseY = e.touches[0].offsetY;
+    pmouseX = mouseX;
+    pmouseY = mouseY;
+    isMobile = false;
+    mousePressed();
+    isMobile = true;
+    touchCooldown1 = 5;
   }
-  if (!customScale && !editTuning) {
-    String[] accidentals = null;
-    String s = scale.toLowerCase();
-    boolean useAccidentals = true;
-    if (useAccidentals) {
-      accidentals = calculateAccidentals(currScale);
-    }
-    
-    float fretW = boardW / frets;
-    float stringH = boardH / (tuning.length - 1);
-    float circleSize = min(stringH * 0.8, fretW * 0.8);
-    toggleNotes(width/2.0, clamp(boardY + boardH + 105, boardY + boardH + 70, height-30), clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0), clamp(circleSize * 1.15, 35, 50) * 1.15, mask);
-    
-    if (mouseIn(boardX + boardW + 55 - 25, boardY + boardH/2.0 - 80, 50, 50, 1)) {
-      if (frets % 12 == 9 || frets % 12 == 0) frets += 3;
-      else frets += 2;
-      if (frets > 21) frets = 9;
-    }
-    if (mouseIn(boardX + boardW + 55 - 25, boardY + boardH/2.0 + 60, 50, 50, 1)) {
-      if (frets % 12 == 0 || frets % 12 == 3) frets -= 3;
-      else frets -= 2;
-      if (frets < 9) frets = 21;
-    }
+}
 
-    float notesW = clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0) * (accidentals.length - 1);
-    float textX = width/2.0 + notesW/2.0 + clamp(circleSize * 1.15, 35, 50) * 1.15 * 0.5 + 25;
-    float textY = clamp(boardY + boardH + 105, boardY + boardH + 70, height-30);
-    if (mouseIn(textX - 15, textY - 25, 90, 50, 1)) {
-      if (!noteNames) {
-        useNotesText = "1 2 3";
+void touchEnd() {
+  if (touchCooldown2 <= 0) {
+    isMobile = false;
+    mouseReleased();
+    isMobile = true;
+    touchCooldown2 = 5;
+  }
+}
+
+/*void touchMove(TouchEvent e) {
+  mouseX = e.touches[0].offsetX;
+  mouseY = e.touches[0].offsetY;
+}*/
+
+void mousePressed() {
+  if (!havePlayedAudio) {
+    var audioList = document.getElementsByTagName("audio");
+    for (var i = 0; i < audioList.length; i++) {
+      audioList[i].play();
+      audioList[i].pause();
+      audioList[i].currentTime = 0;
+    }
+    havePlayedAudio = true;
+  }
+  if (!isMobile) {
+    if (!customScale && !editTuning) {
+      String[] accidentals = null;
+      String s = scale.toLowerCase();
+      boolean useAccidentals = true;
+      if (useAccidentals) {
+        accidentals = calculateAccidentals(currScale);
+      }
+      
+      float fretW = boardW / frets;
+      float stringH = boardH / (tuning.length - 1);
+      float circleSize = min(min(stringH * 0.8, fretW * 0.8), 50);
+      toggleNotes(width/2.0 - 50, clamp(boardY + boardH + 105, boardY + boardH + 70, height-30), clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0), clamp(circleSize * 1.15, 35, 50) * 1.15, mask);
+      
+      if (mouseIn(boardX + boardW + 55 - 25, boardY + boardH/2.0 - 80, 50, 50, 1)) {
+        if (frets % 12 == 9 || frets % 12 == 0) frets += 3;
+        else frets += 2;
+        if (frets > 21) frets = 9;
+      }
+      if (mouseIn(boardX + boardW + 55 - 25, boardY + boardH/2.0 + 60, 50, 50, 1)) {
+        if (frets % 12 == 0 || frets % 12 == 3) frets -= 3;
+        else frets -= 2;
+        if (frets < 9) frets = 21;
+      }
+
+      float notesW = clamp(circleSize * 1.15, 35, 50) * 1.15 * (65.0/50.0) * (accidentals.length - 1);
+      float textX = width/2.0 - 50 + notesW/2.0 + clamp(circleSize * 1.15, 35, 50) * 1.15 * 0.5 + 25;
+      float textY = clamp(boardY + boardH + 105, boardY + boardH + 70, height-30);
+      if (mouseIn(textX - 15, textY - 25, 90, 50, 1)) {
+        if (!noteNames) {
+          useNotesText = "1 2 3";
+        } else {
+          useNotesText = "ABC";
+        }
+        noteNames = !noteNames;
+      }
+
+      if (mouseIn(textX + 70, textY - 30, 70, 60, 1)) {
+        if (!playScale) {
+          boolean anyNoteActive = false;
+          for (int i = 0; i < mask.length; i++) {
+            if (mask[i]) anyNoteActive = true;
+          }
+          if (anyNoteActive) {
+            pitchIndex = -1;
+            scaleTimer = 0;
+            playScale = true;
+          }
+        } else {
+          playScale = false;
+        }
+      }
+    }
+    if (customScale) {
+      float fillGap = width * 0.8 / 11;
+      if (75 * 11 < width * 0.9) {
+        toggleNotes (width/2.0, height/2.0 - 52, 75, 65, customMask);
       } else {
-        useNotesText = "ABC";
+        toggleNotes (width/2.0, height/2.0 - 52, fillGap, fillGap * (65.0/75.0), customMask);
       }
-      noteNames = !noteNames;
+      customMask[0] = 1;
+      updateCustomScaleInfo();
     }
-  }
-  if (customScale) {
-    float fillGap = width * 0.8 / 11;
-    if (75 * 11 < width * 0.9) {
-      toggleNotes (width/2.0, height/2.0 - 52, 75, 65, customMask);
-    } else {
-      toggleNotes (width/2.0, height/2.0 - 52, fillGap, fillGap * (65.0/75.0), customMask);
-    }
-    customMask[0] = 1;
-    updateCustomScaleInfo();
-  }
-  if (editTuning) {
-    float wholeW = 600;
-    float gap = wholeW / (tuning.length-1);
-    for (int i = 0; i < tuning.length; i++) {
-      float textX = width/2.0 - wholeW/2.0 + gap * i;
-      float textY = height/2.0 - 30;
-      float rectX = textX - 30, rectW = 60;
-      boolean changeIt = false;
-      int offset = 0;
-      int sharpOrFlat = 0;
-      if (mouseIn(rectX - 10, textY - 80, rectW + 20, 50, 1) && presetsDrop.inFocus == 0) {
-        changeIt = true;
-        offset = 1;
-        sharpOrFlat = 0;
-      }
-      if (mouseIn(rectX - 10, textY + 22, rectW + 20, 50, 1) && presetsDrop.inFocus == 0) {
-        changeIt = true;
-        offset = rootDrop.options.length - 1;
-        sharpOrFlat = 1;
-      }
-      if (changeIt) {
-        int indexOfCurrNote = -1;
-        for (int n = 0; n < rootDrop.options.length; n++) {
-          String[] splitted = rootDrop.options[n].split("/");
-          if (splitted[0].equals(tuning[i]) || (splitted.length > 1 && splitted[1].equals(tuning[i]))) {
-            indexOfCurrNote = n;
+    if (editTuning) {
+      float wholeW = 600;
+      float gap = wholeW / (tuning.length-1);
+      for (int i = 0; i < tuning.length; i++) {
+        float textX = width/2.0 - wholeW/2.0 + gap * i;
+        float textY = height/2.0 - 30;
+        float rectX = textX - 30, rectW = 60;
+        boolean changeIt = false;
+        int offset = 0;
+        int sharpOrFlat = 0;
+        if (mouseIn(rectX - 10, textY - 80, rectW + 20, 50, 1) && presetsDrop.inFocus == 0) {
+          changeIt = true;
+          offset = 1;
+          sharpOrFlat = 0;
+        }
+        if (mouseIn(rectX - 10, textY + 22, rectW + 20, 50, 1) && presetsDrop.inFocus == 0) {
+          changeIt = true;
+          offset = rootDrop.options.length - 1;
+          sharpOrFlat = 1;
+        }
+        if (changeIt) {
+          int indexOfCurrNote = -1;
+          for (int n = 0; n < rootDrop.options.length; n++) {
+            String[] splitted = rootDrop.options[n].split("/");
+            if (splitted[0].equals(tuning[i]) || (splitted.length > 1 && splitted[1].equals(tuning[i]))) {
+              indexOfCurrNote = n;
+            }
           }
-        }
-        tuning[i] = rootDrop.options[(indexOfCurrNote + offset) % rootDrop.options.length];
-        if (tuning[i].contains("/")) tuning[i] = tuning[i].split("/")[sharpOrFlat];
-        String hyphenatedTuning = "(" + tuning[0];
-        for (int n = 1; n < tuning.length; n++) {
-          hyphenatedTuning += "-" + tuning[n];
-        }
-        hyphenatedTuning += ")";
-        presetsDrop.value = "Custom";
-        for (int n = 0; n < presetsDrop.options.length; n++) {
-          if (presetsDrop.options[n].contains(hyphenatedTuning)) {
-            presetsDrop.value = presetsDrop.options[n];
+          tuning[i] = rootDrop.options[(indexOfCurrNote + offset) % rootDrop.options.length];
+          if (tuning[i].contains("/")) tuning[i] = tuning[i].split("/")[sharpOrFlat];
+          String hyphenatedTuning = "(" + tuning[0];
+          for (int n = 1; n < tuning.length; n++) {
+            hyphenatedTuning += "-" + tuning[n];
+          }
+          hyphenatedTuning += ")";
+          presetsDrop.value = "Custom";
+          for (int n = 0; n < presetsDrop.options.length; n++) {
+            if (presetsDrop.options[n].contains(hyphenatedTuning)) {
+              presetsDrop.value = presetsDrop.options[n];
+            }
           }
         }
       }
+    }
+    for (UIElement e : elements) {
+      e.mousePressed();
     }
   }
 }
 
 void mouseReleased() {
-  for (UIElement e : elements) {
-    e.mouseReleased();
+  if (!isMobile) {
+    for (UIElement e : elements) {
+      e.mouseReleased();
+    }
   }
 }
 
@@ -509,6 +652,7 @@ void uiFunctions() {
     customScaleButton.onScreen = false;
     editTuningButton.onScreen = false;
     customMask = new int[12];
+    playScale = false;
     for (int i = 0; i < currScale.length; i++) {
       customMask[currScale[i]] = 1;
     }
@@ -521,19 +665,29 @@ void uiFunctions() {
     modeDrop.onScreen = false;
     customScaleButton.onScreen = false;
     editTuningButton.onScreen = false;
+    playScale = false;
     prevTuning = new String[tuning.length];
     for (int i = 0; i < tuning.length; i++) prevTuning[i] = tuning[i];
     prevPreset = presetsDrop.value;
   }
   if (rootDrop.inFocus == 2) {
     root = rootDrop.value;
+    playScale = false;
   }
   if (scaleDrop.inFocus == 2) {
     scale = scaleDrop.value;
+    playScale = false;
     modeDrop.options = getModeOptions(scale);
-    int optionNum = 0;
-    //if (scale.toLowerCase().equals("blues")) optionNum = 1;
-    modeDrop.value = modeDrop.options[optionNum];
+    boolean changeMode = true;
+    for (int i = 0; i < modeDrop.options.length; i++) {
+      if (modeDrop.options[i].equals(modeDrop.value)) {
+        changeMode = false;
+        break;
+      }
+    }
+    if (changeMode) {
+      modeDrop.value = modeDrop.options[0];
+    }
     mode = modeDrop.value;
     prevMode = modeDrop.value;
     mask = new int[generateScalePitches(scaleDrop.value, "1").length];
@@ -541,6 +695,7 @@ void uiFunctions() {
     recalculateScale();
   }
   if (modeDrop.inFocus == 2) {
+    playScale = false;
     int[] jumps = jumpsFromScale(scale);
     int prevRot = rotationFromMode(jumps, prevMode);
     int currRot = rotationFromMode(jumps, modeDrop.value);
@@ -568,7 +723,7 @@ void drawUI() {
 void setupUI() {
   elements = new ArrayList<UIElement>();
   
-  float dropsX = width/2.0 - 270, dropsY = 40;
+  float dropsX = width/2.0 - 280, dropsY = 40;
   
   String[] rootOptions = {"A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"};
   rootDrop = new Dropdown(dropsX, dropsY, 100, rootOptions, root);
@@ -589,9 +744,9 @@ void setupUI() {
   cancelButton = new Button("Cancel", width/2.0 + 10, height / 2.0 + 95, 240, 60);
   
   editTuningButton = new Button("Change tuning", max(boardX - 80, 10), boardY + boardH + 40, 160, 35);
-  String[] tuningPresets = {"Standard (E-A-D-G-B-E)", "Drop D (D-A-D-G-B-E)", "Open A (E-A-C#-E-A-E)", "Open B (B-F#-B-F#-B-D#)",
+  String[] tuningPresets = {"Standard (E-A-D-G-B-E)", "Bass Standard (E-A-D-G)", "Drop D (D-A-D-G-B-E)", "Open A (E-A-C#-E-A-E)", "Open B (B-F#-B-F#-B-D#)",
                             "Open C (C-G-C-G-C-E)", "Open D (D-A-D-F#-A-D)", "Open E (E-B-E-G#-B-E)", "Open F (C-F-C-F-A-C)", "Open G (D-G-D-G-B-D)"};
-  presetsDrop = new Dropdown(width/2.0 - 100, height/2.0 - 195, 350, tuningPresets, tuningPresets[0]);
+  presetsDrop = new Dropdown(width/2.0 - 100, height/2.0 - 215, 350, tuningPresets, tuningPresets[0]);
   presetsDrop.h = 45;
   presetsDrop.onScreen = false;
   
@@ -759,8 +914,6 @@ class Dropdown extends UIElement {
       }
     }
   }
-  
-  void mouseReleased() {}
   
   void drawOption(String opText, float opX, float opY, float opW, float opH) {
     noStroke();
